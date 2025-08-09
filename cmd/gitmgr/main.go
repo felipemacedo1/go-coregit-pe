@@ -30,6 +30,10 @@ func main() {
 		handleCloneCommand()
 	case "status":
 		handleStatusCommand()
+	case "log":
+		handleLogCommand()
+	case "diff":
+		handleDiffCommand()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", os.Args[1])
 		printUsage()
@@ -49,6 +53,8 @@ Commands:
   repo open <path> Open an existing repository
   clone <url> [path] Clone a repository
   status [path]   Show repository status
+  log [path]      Show commit history
+  diff [path]     Show changes
 
 More commands coming soon...
 `, version)
@@ -180,5 +186,68 @@ func handleStatusCommand() {
 		for _, file := range status.Files {
 			fmt.Printf("  %s %s\n", file.Status, file.Path)
 		}
+	}
+}
+
+func handleLogCommand() {
+	path := "."
+	if len(os.Args) > 2 {
+		path = os.Args[2]
+	}
+
+	git := execgit.New()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	repo, err := git.Open(ctx, path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	commits, err := git.Log(ctx, repo, "", 10, false)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	for _, commit := range commits {
+		fmt.Printf("commit %s\n", commit.Hash)
+		fmt.Printf("Author: %s <%s>\n", commit.Author, commit.Email)
+		fmt.Printf("Date:   %s\n", commit.Date.Format("Mon Jan 2 15:04:05 2006 -0700"))
+		fmt.Printf("\n    %s\n", commit.Subject)
+		if commit.Body != "" {
+			fmt.Printf("\n    %s\n", commit.Body)
+		}
+		fmt.Println()
+	}
+}
+
+func handleDiffCommand() {
+	path := "."
+	if len(os.Args) > 2 {
+		path = os.Args[2]
+	}
+
+	git := execgit.New()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	repo, err := git.Open(ctx, path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	diff, err := git.Diff(ctx, repo, "", "", true)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if diff == "" {
+		fmt.Println("No changes")
+	} else {
+		fmt.Print(diff)
 	}
 }

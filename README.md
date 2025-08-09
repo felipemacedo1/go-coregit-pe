@@ -47,7 +47,16 @@ gitmgr version
 # Show help
 gitmgr help
 
-# More commands coming soon...
+# Repository operations
+gitmgr repo open /path/to/repo
+gitmgr clone https://github.com/user/repo.git
+gitmgr status
+
+# View history and changes
+gitmgr log
+gitmgr diff
+
+# More commands available - see gitmgr help
 ```
 
 ### Development
@@ -96,16 +105,19 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 🚧 **Work in Progress** - This project is under active development.
 
-Current milestone: **Bootstrap** ✅
-- [x] Project structure
-- [x] Basic CLI with version command
-- [x] Core interfaces and types
-- [x] Secure Git executor
-- [x] Structured logging
-- [x] Documentation foundation
+Current milestone: **Core Operations** ✅
+- [x] Repository operations (open, clone, status, init, discover, config)
+- [x] Remote operations (list, add, remove, set-url)
+- [x] Sync operations (fetch, pull, push) with error handling
+- [x] Branch operations (create, delete, checkout, list)
+- [x] Inspection operations (log, diff)
+- [x] CLI commands (repo, clone, status, log, diff)
+- [x] JSON-based cache system
+- [x] Comprehensive test coverage
 
-Next milestone: **Core Operations**
-- [ ] Repository operations (open, clone, status)
-- [ ] Branch operations
-- [ ] Remote operations
-- [ ] Basic CLI commands
+Next milestone: **Advanced Operations**
+- [ ] Merge/Rebase/Cherry-pick operations
+- [ ] Tag operations
+- [ ] Stash operations
+- [ ] Worktree operations
+- [ ] Submodule and LFS support

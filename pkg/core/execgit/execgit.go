@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/felipe-macedo/go-coregit-pe/internal/executil"
 	"github.com/felipe-macedo/go-coregit-pe/internal/logging"
@@ -732,11 +733,96 @@ func (e *ExecGit) Revert(ctx context.Context, repo *core.Repo, commit string) er
 }
 
 func (e *ExecGit) Log(ctx context.Context, repo *core.Repo, ref string, maxCount int, oneline bool) ([]core.CommitInfo, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	args := []string{"log"}
+	
+	if oneline {
+		args = append(args, "--oneline")
+	} else {
+		args = append(args, "--pretty=format:%H|%h|%an|%ae|%ai|%s|%b")
+	}
+	
+	if maxCount > 0 {
+		args = append(args, "-n", strconv.Itoa(maxCount))
+	}
+	
+	if ref != "" {
+		args = append(args, ref)
+	}
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get log: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return nil, fmt.Errorf("log failed: %s", result.Stderr)
+	}
+
+	var commits []core.CommitInfo
+	for _, line := range strings.Split(result.Stdout, "\n") {
+		if line == "" {
+			continue
+		}
+
+		if oneline {
+			// Parse oneline format: "hash subject"
+			parts := strings.SplitN(line, " ", 2)
+			if len(parts) >= 2 {
+				commits = append(commits, core.CommitInfo{
+					ShortHash: parts[0],
+					Subject:   parts[1],
+				})
+			}
+		} else {
+			// Parse custom format: "hash|shorthash|author|email|date|subject|body"
+			parts := strings.Split(line, "|")
+			if len(parts) >= 6 {
+				date, _ := time.Parse("2006-01-02 15:04:05 -0700", parts[4])
+				body := ""
+				if len(parts) > 6 {
+					body = parts[6]
+				}
+				commits = append(commits, core.CommitInfo{
+					Hash:      parts[0],
+					ShortHash: parts[1],
+					Author:    parts[2],
+					Email:     parts[3],
+					Date:      date,
+					Subject:   parts[5],
+					Body:      body,
+				})
+			}
+		}
+	}
+
+	return commits, nil
 }
 
 func (e *ExecGit) Diff(ctx context.Context, repo *core.Repo, base, head string, stat bool) (string, error) {
-	return "", fmt.Errorf("not implemented yet")
+	args := []string{"diff"}
+	
+	if stat {
+		args = append(args, "--stat")
+	}
+	
+	if base != "" && head != "" {
+		args = append(args, base+"..."+head)
+	} else if base != "" {
+		args = append(args, base)
+	} else if head != "" {
+		args = append(args, head)
+	}
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return "", fmt.Errorf("failed to get diff: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return "", fmt.Errorf("diff failed: %s", result.Stderr)
+	}
+
+	return result.Stdout, nil
 }
 
 func (e *ExecGit) Blame(ctx context.Context, repo *core.Repo, file, ref string) (string, error) {
