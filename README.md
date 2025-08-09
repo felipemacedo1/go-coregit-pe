@@ -7,7 +7,8 @@ A cross-platform Git manager with CLI and local API, built using only Go standar
 - **Cross-platform**: Linux, macOS, Windows support
 - **Security-first**: No credential logging, secure command execution
 - **CLI interface**: `gitmgr` command with Git operations
-- **Local HTTP API**: For automation and GUI integration
+- **HTTP API server**: `gitmgr-server` for automation and GUI integration
+- **JSON-based cache**: Lightweight caching system for metadata
 - **No external dependencies**: Uses only Go standard library
 - **Native Git**: Executes native `git` binary for full compatibility
 
@@ -57,6 +58,21 @@ gitmgr log
 gitmgr diff
 
 # More commands available - see gitmgr help
+```
+
+### HTTP API Server
+
+```bash
+# Start HTTP API server
+gitmgr-server -addr=127.0.0.1:8080
+
+# Use API endpoints
+curl "http://127.0.0.1:8080/v1/status?path=/path/to/repo"
+curl -X POST http://127.0.0.1:8080/v1/clone \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://github.com/user/repo.git","path":"/local/path"}'
+
+# See docs/spec/api-spec.md for full API documentation
 ```
 
 ### Development
@@ -112,8 +128,9 @@ Current milestone: **Core Operations** ✅
 - [x] Branch operations (create, delete, checkout, list)
 - [x] Inspection operations (log, diff)
 - [x] CLI commands (repo, clone, status, log, diff)
-- [x] JSON-based cache system
-- [x] Comprehensive test coverage
+- [x] HTTP API server with RESTful endpoints
+- [x] JSON-based cache system with TTL
+- [x] Comprehensive test coverage and documentation
 
 Next milestone: **Advanced Operations**
 - [ ] Merge/Rebase/Cherry-pick operations

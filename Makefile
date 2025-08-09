@@ -15,6 +15,8 @@ build:
 	@echo "Building $(BINARY_NAME) v$(VERSION)..."
 	@mkdir -p $(BUILD_DIR)
 	go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/gitmgr
+	@echo "Building $(BINARY_NAME)-server v$(VERSION)..."
+	go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-server ./cmd/gitmgr-server
 
 # Run tests
 test:
@@ -40,6 +42,10 @@ cross:
 	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 ./cmd/gitmgr
 	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 ./cmd/gitmgr
 	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe ./cmd/gitmgr
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-server-linux-amd64 ./cmd/gitmgr-server
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-server-darwin-amd64 ./cmd/gitmgr-server
+	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-server-darwin-arm64 ./cmd/gitmgr-server
+	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-server-windows-amd64.exe ./cmd/gitmgr-server
 
 # Run demo script
 demo:
