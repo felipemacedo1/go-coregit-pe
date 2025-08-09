@@ -110,7 +110,7 @@ func TestSanitizeOutput(t *testing.T) {
 func TestRun_InvalidRepo(t *testing.T) {
 	executor := NewGitExecutor()
 	ctx := context.Background()
-	
+
 	result, err := executor.Run(ctx, "/nonexistent/path", []string{"status"})
 	if err != nil {
 		// This is expected - git command will fail

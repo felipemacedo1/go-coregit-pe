@@ -50,7 +50,7 @@ func TestCacheSetGet(t *testing.T) {
 	}
 
 	// Clean up
-	cache.Clear(repoPath)
+	_ = cache.Clear(repoPath)
 }
 
 func TestCacheExpiration(t *testing.T) {
@@ -83,7 +83,7 @@ func TestCacheExpiration(t *testing.T) {
 	}
 
 	// Clean up
-	cache.Clear(repoPath)
+	_ = cache.Clear(repoPath)
 }
 
 func TestCacheBranches(t *testing.T) {
@@ -120,7 +120,7 @@ func TestCacheBranches(t *testing.T) {
 	}
 
 	// Clean up
-	cache.Clear(repoPath)
+	_ = cache.Clear(repoPath)
 }
 
 func TestCacheDelete(t *testing.T) {
@@ -156,7 +156,7 @@ func TestCacheDelete(t *testing.T) {
 	}
 
 	// Clean up
-	cache.Clear(repoPath)
+	_ = cache.Clear(repoPath)
 }
 
 func TestGetRepoHash(t *testing.T) {

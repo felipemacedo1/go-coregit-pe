@@ -50,7 +50,7 @@ func (e *ExecGit) Open(ctx context.Context, path string) (*core.Repo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if bare repository: %w", err)
 	}
-	
+
 	isBare := strings.TrimSpace(result.Stdout) == "true"
 
 	// Check if worktree
@@ -66,8 +66,8 @@ func (e *ExecGit) Open(ctx context.Context, path string) (*core.Repo, error) {
 	}
 
 	e.logger.Info("Opened repository", map[string]interface{}{
-		"path":    absPath,
-		"bare":    isBare,
+		"path":     absPath,
+		"bare":     isBare,
 		"worktree": isWorktree,
 	})
 
@@ -84,7 +84,7 @@ func (e *ExecGit) Clone(ctx context.Context, opts core.CloneOptions) (*core.Repo
 	}
 
 	args := []string{"clone"}
-	
+
 	if opts.Branch != "" {
 		args = append(args, "--branch", opts.Branch)
 	}
@@ -135,19 +135,19 @@ func (e *ExecGit) GetStatus(ctx context.Context, repo *core.Repo) (*core.RepoSta
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current branch: %w", err)
 	}
-	
+
 	branch := strings.TrimSpace(result.Stdout)
 
 	// Get upstream info
 	upstream := ""
 	ahead := 0
 	behind := 0
-	
+
 	if branch != "" {
 		result, err = e.executor.Run(ctx, repo.Path, []string{"rev-parse", "--abbrev-ref", branch + "@{upstream}"})
 		if err == nil && result.ExitCode == 0 {
 			upstream = strings.TrimSpace(result.Stdout)
-			
+
 			// Get ahead/behind counts
 			result, err = e.executor.Run(ctx, repo.Path, []string{"rev-list", "--count", "--left-right", branch + "..." + upstream})
 			if err == nil && result.ExitCode == 0 {
@@ -174,10 +174,10 @@ func (e *ExecGit) GetStatus(ctx context.Context, repo *core.Repo) (*core.RepoSta
 		if len(line) < 3 {
 			continue
 		}
-		
+
 		status := line[:2]
 		path := line[3:]
-		
+
 		files = append(files, core.FileStatus{
 			Path:     path,
 			Status:   status,
@@ -444,7 +444,7 @@ func (e *ExecGit) SetRemoteURL(ctx context.Context, repo *core.Repo, name, url s
 
 func (e *ExecGit) Fetch(ctx context.Context, repo *core.Repo, remote string, prune, tags bool) error {
 	args := []string{"fetch"}
-	
+
 	if remote != "" {
 		args = append(args, remote)
 	}
@@ -475,7 +475,7 @@ func (e *ExecGit) Fetch(ctx context.Context, repo *core.Repo, remote string, pru
 
 func (e *ExecGit) Pull(ctx context.Context, repo *core.Repo, remote, branch string, rebase bool) error {
 	args := []string{"pull"}
-	
+
 	if rebase {
 		args = append(args, "--rebase")
 	}
@@ -513,7 +513,7 @@ func (e *ExecGit) Pull(ctx context.Context, repo *core.Repo, remote, branch stri
 
 func (e *ExecGit) Push(ctx context.Context, repo *core.Repo, remote, branch string, force, tags bool) error {
 	args := []string{"push"}
-	
+
 	if force {
 		args = append(args, "--force-with-lease")
 	}
@@ -734,17 +734,17 @@ func (e *ExecGit) Revert(ctx context.Context, repo *core.Repo, commit string) er
 
 func (e *ExecGit) Log(ctx context.Context, repo *core.Repo, ref string, maxCount int, oneline bool) ([]core.CommitInfo, error) {
 	args := []string{"log"}
-	
+
 	if oneline {
 		args = append(args, "--oneline")
 	} else {
 		args = append(args, "--pretty=format:%H|%h|%an|%ae|%ai|%s|%b")
 	}
-	
+
 	if maxCount > 0 {
 		args = append(args, "-n", strconv.Itoa(maxCount))
 	}
-	
+
 	if ref != "" {
 		args = append(args, ref)
 	}
@@ -800,11 +800,11 @@ func (e *ExecGit) Log(ctx context.Context, repo *core.Repo, ref string, maxCount
 
 func (e *ExecGit) Diff(ctx context.Context, repo *core.Repo, base, head string, stat bool) (string, error) {
 	args := []string{"diff"}
-	
+
 	if stat {
 		args = append(args, "--stat")
 	}
-	
+
 	if base != "" && head != "" {
 		args = append(args, base+"..."+head)
 	} else if base != "" {

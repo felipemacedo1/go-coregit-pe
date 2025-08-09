@@ -20,8 +20,8 @@ type Cache struct {
 
 // CacheEntry represents a cached item with TTL
 type CacheEntry struct {
-	Data      interface{} `json:"data"`
-	Timestamp time.Time   `json:"timestamp"`
+	Data      interface{}   `json:"data"`
+	Timestamp time.Time     `json:"timestamp"`
 	TTL       time.Duration `json:"ttl"`
 }
 
@@ -81,7 +81,7 @@ func (c *Cache) Set(repoPath, key string, data interface{}, ttl time.Duration) e
 	}
 
 	cacheFile := filepath.Join(c.getCacheDir(repoPath), key+".json")
-	if err := os.WriteFile(cacheFile, jsonData, 0644); err != nil {
+	if err := os.WriteFile(cacheFile, jsonData, 0600); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}
 
@@ -94,7 +94,7 @@ func (c *Cache) Get(repoPath, key string, target interface{}) (bool, error) {
 	defer c.mu.RUnlock()
 
 	cacheFile := filepath.Join(c.getCacheDir(repoPath), key+".json")
-	
+
 	data, err := os.ReadFile(cacheFile)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -111,7 +111,7 @@ func (c *Cache) Get(repoPath, key string, target interface{}) (bool, error) {
 	// Check if entry has expired
 	if time.Since(entry.Timestamp) > entry.TTL {
 		// Entry expired, remove it
-		os.Remove(cacheFile)
+		_ = os.Remove(cacheFile)
 		return false, nil
 	}
 
@@ -187,8 +187,11 @@ func (c *Cache) CacheStatus(repoPath string, status *core.RepoStatus) error {
 func (c *Cache) GetCachedStatus(repoPath string) (*core.RepoStatus, bool, error) {
 	var status core.RepoStatus
 	found, err := c.Get(repoPath, "status", &status)
-	if !found || err != nil {
+	if err != nil {
 		return nil, found, err
+	}
+	if !found {
+		return nil, found, nil
 	}
 	return &status, found, err
 }

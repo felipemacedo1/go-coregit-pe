@@ -40,9 +40,9 @@ type Logger struct {
 
 // LogEntry represents a structured log entry
 type LogEntry struct {
-	Timestamp string `json:"timestamp"`
-	Level     string `json:"level"`
-	Message   string `json:"message"`
+	Timestamp string                 `json:"timestamp"`
+	Level     string                 `json:"level"`
+	Message   string                 `json:"message"`
 	Fields    map[string]interface{} `json:"fields,omitempty"`
 }
 
@@ -114,14 +114,14 @@ func (l *Logger) writeJSON(entry LogEntry) {
 // writeText writes log entry as plain text
 func (l *Logger) writeText(entry LogEntry) {
 	output := fmt.Sprintf("[%s] %s: %s", entry.Timestamp, entry.Level, entry.Message)
-	
+
 	if entry.Fields != nil && len(entry.Fields) > 0 {
 		output += " |"
 		for k, v := range entry.Fields {
 			output += fmt.Sprintf(" %s=%v", k, v)
 		}
 	}
-	
+
 	fmt.Fprintln(l.output, output)
 }
 

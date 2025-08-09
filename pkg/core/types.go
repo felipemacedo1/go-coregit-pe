@@ -7,24 +7,24 @@ import (
 
 // Repo represents a Git repository
 type Repo struct {
-	Path     string
-	WorkDir  string
-	GitDir   string
-	IsBare   bool
+	Path       string
+	WorkDir    string
+	GitDir     string
+	IsBare     bool
 	IsWorktree bool
 }
 
 // CloneOptions configures repository cloning
 type CloneOptions struct {
-	URL         string
-	Path        string
-	Branch      string
-	Depth       int
-	Bare        bool
-	Mirror      bool
-	Sparse      []string
-	Recursive   bool
-	Progress    bool
+	URL       string
+	Path      string
+	Branch    string
+	Depth     int
+	Bare      bool
+	Mirror    bool
+	Sparse    []string
+	Recursive bool
+	Progress  bool
 }
 
 // ExecResult contains the result of a Git command execution
@@ -44,12 +44,12 @@ type AuthHint struct {
 
 // BranchInfo represents branch information
 type BranchInfo struct {
-	Name      string
-	Current   bool
-	Remote    string
-	Upstream  string
-	Ahead     int
-	Behind    int
+	Name     string
+	Current  bool
+	Remote   string
+	Upstream string
+	Ahead    int
+	Behind   int
 }
 
 // RemoteInfo represents remote repository information
@@ -81,12 +81,12 @@ type FileStatus struct {
 
 // RepoStatus represents repository status
 type RepoStatus struct {
-	Branch    string
-	Upstream  string
-	Ahead     int
-	Behind    int
-	Files     []FileStatus
-	Clean     bool
+	Branch   string
+	Upstream string
+	Ahead    int
+	Behind   int
+	Files    []FileStatus
+	Clean    bool
 }
 
 // CoreGit defines the main interface for Git operations

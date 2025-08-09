@@ -76,9 +76,8 @@ func handleRepoCommand() {
 		path := os.Args[3]
 		git := execgit.New()
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-
 		repo, err := git.Open(ctx, path)
+		cancel()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
@@ -126,14 +125,13 @@ func handleCloneCommand() {
 
 	git := execgit.New()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
 	fmt.Printf("Cloning %s to %s...\n", url, path)
 	repo, err := git.Clone(ctx, core.CloneOptions{
 		URL:      url,
 		Path:     path,
 		Progress: true,
 	})
+	cancel()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -150,9 +148,8 @@ func handleStatusCommand() {
 
 	git := execgit.New()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
 	repo, err := git.Open(ctx, path)
+	cancel()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -167,13 +164,14 @@ func handleStatusCommand() {
 	fmt.Printf("On branch %s\n", status.Branch)
 	if status.Upstream != "" {
 		fmt.Printf("Your branch is ")
-		if status.Ahead > 0 && status.Behind > 0 {
+		switch {
+		case status.Ahead > 0 && status.Behind > 0:
 			fmt.Printf("ahead by %d and behind by %d commits", status.Ahead, status.Behind)
-		} else if status.Ahead > 0 {
+		case status.Ahead > 0:
 			fmt.Printf("ahead by %d commits", status.Ahead)
-		} else if status.Behind > 0 {
+		case status.Behind > 0:
 			fmt.Printf("behind by %d commits", status.Behind)
-		} else {
+		default:
 			fmt.Printf("up to date")
 		}
 		fmt.Printf(" with '%s'\n", status.Upstream)
@@ -197,15 +195,15 @@ func handleLogCommand() {
 
 	git := execgit.New()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
 	repo, err := git.Open(ctx, path)
 	if err != nil {
+		cancel()
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 
 	commits, err := git.Log(ctx, repo, "", 10, false)
+	cancel()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -231,15 +229,15 @@ func handleDiffCommand() {
 
 	git := execgit.New()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
 	repo, err := git.Open(ctx, path)
 	if err != nil {
+		cancel()
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 
 	diff, err := git.Diff(ctx, repo, "", "", true)
+	cancel()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)

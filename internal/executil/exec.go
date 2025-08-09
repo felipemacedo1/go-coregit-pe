@@ -37,7 +37,7 @@ type ExecResult struct {
 // Run executes a git command with security measures
 func (e *GitExecutor) Run(ctx context.Context, repoPath string, args []string) (*ExecResult, error) {
 	start := time.Now()
-	
+
 	// Create context with timeout if none provided
 	if ctx == nil {
 		var cancel context.CancelFunc
@@ -47,25 +47,25 @@ func (e *GitExecutor) Run(ctx context.Context, repoPath string, args []string) (
 
 	// Sanitize arguments to prevent injection
 	sanitizedArgs := sanitizeArgs(args)
-	
+
 	// Build command
 	cmdArgs := []string{"-C", repoPath}
 	cmdArgs = append(cmdArgs, sanitizedArgs...)
-	
+
 	cmd := exec.CommandContext(ctx, "git", cmdArgs...)
-	
+
 	// Set secure environment
 	cmd.Env = []string{
 		"GIT_TERMINAL_PROMPT=0",
 		"LC_ALL=C",
 		"PATH=" + getSecurePath(),
 	}
-	
+
 	// Execute command
 	stdout, err := cmd.Output()
 	stderr := ""
 	exitCode := 0
-	
+
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
 			stderr = string(exitError.Stderr)
@@ -74,14 +74,14 @@ func (e *GitExecutor) Run(ctx context.Context, repoPath string, args []string) (
 			return nil, fmt.Errorf("failed to execute git command: %w", err)
 		}
 	}
-	
+
 	result := &ExecResult{
 		ExitCode: exitCode,
 		Stdout:   string(stdout),
 		Stderr:   sanitizeOutput(stderr),
 		Duration: time.Since(start),
 	}
-	
+
 	return result, nil
 }
 
@@ -106,12 +106,12 @@ func sanitizeArgs(args []string) []string {
 func isKnownSafeArg(arg string) bool {
 	// Allow commit messages and other text that might contain special chars
 	safePatterns := []string{
-		`^-m$`,           // message flag
-		`^--message=`,    // message with value
-		`^--format=`,     // format string
-		`^--pretty=`,     // pretty format
+		`^-m$`,        // message flag
+		`^--message=`, // message with value
+		`^--format=`,  // format string
+		`^--pretty=`,  // pretty format
 	}
-	
+
 	for _, pattern := range safePatterns {
 		if matched, _ := regexp.MatchString(pattern, arg); matched {
 			return true
@@ -127,18 +127,18 @@ func sanitizeOutput(output string) string {
 		pattern     string
 		replacement string
 	}{
-		{`https://[^:]+:[^@]+@`, "https://***:***@"},           // HTTPS credentials
-		{`ssh://[^@]+@`, "ssh://***@"},                         // SSH user
-		{`token [a-zA-Z0-9_-]+`, "token ***"},                  // Generic tokens
-		{`password[=:]\s*[^\s]+`, "password=***"},              // Password fields
+		{`https://[^:]+:[^@]+@`, "https://***:***@"}, // HTTPS credentials
+		{`ssh://[^@]+@`, "ssh://***@"},               // SSH user
+		{`token [a-zA-Z0-9_-]+`, "token ***"},        // Generic tokens
+		{`password[=:]\s*[^\s]+`, "password=***"},    // Password fields
 	}
-	
+
 	result := output
 	for _, p := range patterns {
 		re := regexp.MustCompile(p.pattern)
 		result = re.ReplaceAllString(result, p.replacement)
 	}
-	
+
 	return result
 }
 

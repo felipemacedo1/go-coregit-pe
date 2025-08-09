@@ -59,7 +59,7 @@ func TestSanitizeURL(t *testing.T) {
 func TestOpen_InvalidPath(t *testing.T) {
 	git := New()
 	ctx := context.Background()
-	
+
 	_, err := git.Open(ctx, "/nonexistent/path")
 	if err == nil {
 		t.Error("Expected error for nonexistent path")
