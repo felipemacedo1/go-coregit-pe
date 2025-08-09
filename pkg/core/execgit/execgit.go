@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/felipe-macedo/go-coregit-pe/internal/executil"
-	"github.com/felipe-macedo/go-coregit-pe/internal/logging"
-	"github.com/felipe-macedo/go-coregit-pe/pkg/core"
+	"github.com/felipemacedo1/go-coregit-pe/internal/executil"
+	"github.com/felipemacedo1/go-coregit-pe/internal/logging"
+	"github.com/felipemacedo1/go-coregit-pe/pkg/core"
 )
 
 // ExecGit implements CoreGit interface using git binary

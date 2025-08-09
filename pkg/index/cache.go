@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/felipe-macedo/go-coregit-pe/pkg/core"
+	"github.com/felipemacedo1/go-coregit-pe/pkg/core"
 )
 
 // Cache provides lightweight caching for Git repository metadata

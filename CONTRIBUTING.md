@@ -13,7 +13,7 @@ Thank you for your interest in contributing to Go Core Git! This document provid
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/your-username/go-coregit-pe.git
+   git clone https://github.com/felipemacedo1/go-coregit-pe.git
    cd go-coregit-pe
    ```
 3. Build the project:
@@ -193,6 +193,7 @@ Brief description of changes
 - Check existing issues and discussions
 - Review documentation in `/docs/`
 - Ask questions in GitHub issues
+- Contact the maintainer: contato.dev.macedo@gmail.com
 - Follow project conventions and patterns
 
 ## Code of Conduct
@@ -201,5 +202,12 @@ Brief description of changes
 - Focus on constructive feedback
 - Help others learn and grow
 - Maintain a positive environment
+
+## Maintainer
+
+**Felipe Macedo**
+- GitHub: [github.com/felipemacedo1](https://github.com/felipemacedo1)
+- LinkedIn: [linkedin.com/in/felipemacedo1](https://linkedin.com/in/felipemacedo1)
+- Email: contato.dev.macedo@gmail.com
 
 Thank you for contributing to Go Core Git!

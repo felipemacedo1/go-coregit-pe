@@ -1,4 +1,4 @@
-module github.com/felipe-macedo/go-coregit-pe
+module github.com/felipemacedo1/go-coregit-pe
 
 go 1.22
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/felipe-macedo/go-coregit-pe/pkg/core"
+	"github.com/felipemacedo1/go-coregit-pe/pkg/core"
 )
 
 func TestNewCache(t *testing.T) {

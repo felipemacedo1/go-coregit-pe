@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/felipe-macedo/go-coregit-pe/internal/logging"
-	"github.com/felipe-macedo/go-coregit-pe/pkg/core"
-	"github.com/felipe-macedo/go-coregit-pe/pkg/core/execgit"
+	"github.com/felipemacedo1/go-coregit-pe/internal/logging"
+	"github.com/felipemacedo1/go-coregit-pe/pkg/core"
+	"github.com/felipemacedo1/go-coregit-pe/pkg/core/execgit"
 )
 
 // Server provides HTTP API for Git operations

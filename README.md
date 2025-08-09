@@ -22,7 +22,7 @@ A cross-platform Git manager with CLI and local API, built using only Go standar
 ### From Source
 
 ```bash
-git clone https://github.com/felipe-macedo/go-coregit-pe.git
+git clone https://github.com/felipemacedo1/go-coregit-pe.git
 cd go-coregit-pe
 make build
 ```
@@ -115,7 +115,17 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+Custom License - Free for personal and educational use. Commercial and enterprise use requires authorization.
+See [LICENSE](LICENSE) for details.
+
+For commercial licensing information, see [COMMERCIAL-LICENSE.md](docs/COMMERCIAL-LICENSE.md)
+Contact: contato.dev.macedo@gmail.com
+
+## Author
+
+**Felipe Macedo**
+- Portfolio: [felipemacedo1.github.io](https://felipemacedo1.github.io/)
+- LinkedIn: [linkedin.com/in/felipemacedo1](https://linkedin.com/in/felipemacedo1)
 
 ## Status
 

@@ -59,7 +59,7 @@ cmd.Env = []string{
 
 ### How to Report
 1. **Do NOT create a public issue** for security vulnerabilities
-2. Send an email to: [security@example.com] (replace with actual email)
+2. Send an email to: contato.dev.macedo@gmail.com
 3. Include detailed information about the vulnerability
 4. Provide steps to reproduce if possible
 
@@ -153,8 +153,9 @@ This project follows:
 ## Contact
 
 For security-related questions or concerns:
-- Email: [security@example.com] (replace with actual email)
-- GPG Key: [Include GPG key fingerprint if available]
+- Email: contato.dev.macedo@gmail.com
+- GitHub: https://github.com/felipemacedo1
+- LinkedIn: https://linkedin.com/in/felipemacedo1
 
 ## Acknowledgments
 

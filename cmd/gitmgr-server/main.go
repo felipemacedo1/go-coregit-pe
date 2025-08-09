@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/felipe-macedo/go-coregit-pe/pkg/api"
+	"github.com/felipemacedo1/go-coregit-pe/pkg/api"
 )
 
 var version = "dev"

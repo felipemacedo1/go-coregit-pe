@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/felipe-macedo/go-coregit-pe/pkg/core"
-	"github.com/felipe-macedo/go-coregit-pe/pkg/core/execgit"
+	"github.com/felipemacedo1/go-coregit-pe/pkg/core"
+	"github.com/felipemacedo1/go-coregit-pe/pkg/core/execgit"
 )
 
 var version = "dev"
