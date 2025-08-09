@@ -226,63 +226,485 @@ func sanitizeURL(url string) string {
 // These will be implemented in subsequent commits
 
 func (e *ExecGit) Init(ctx context.Context, path string, bare bool) (*core.Repo, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("invalid path: %w", err)
+	}
+
+	args := []string{"init"}
+	if bare {
+		args = append(args, "--bare")
+	}
+	args = append(args, absPath)
+
+	e.logger.Info("Initializing repository", map[string]interface{}{
+		"path": absPath,
+		"bare": bare,
+	})
+
+	// Init from parent directory
+	parentDir := filepath.Dir(absPath)
+	result, err := e.executor.Run(ctx, parentDir, args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute init: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return nil, fmt.Errorf("init failed: %s", result.Stderr)
+	}
+
+	// Open the initialized repository
+	return e.Open(ctx, absPath)
 }
 
 func (e *ExecGit) Discover(ctx context.Context, path string) (*core.Repo, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("invalid path: %w", err)
+	}
+
+	// Find the git repository root
+	result, err := e.executor.Run(ctx, absPath, []string{"rev-parse", "--show-toplevel"})
+	if err != nil || result.ExitCode != 0 {
+		return nil, fmt.Errorf("no git repository found at %s", absPath)
+	}
+
+	repoRoot := strings.TrimSpace(result.Stdout)
+	return e.Open(ctx, repoRoot)
 }
 
 func (e *ExecGit) GetConfig(ctx context.Context, repo *core.Repo, key string) (string, error) {
-	return "", fmt.Errorf("not implemented yet")
+	if key == "" {
+		return "", fmt.Errorf("config key is required")
+	}
+
+	result, err := e.executor.Run(ctx, repo.Path, []string{"config", "--get", key})
+	if err != nil {
+		return "", fmt.Errorf("failed to get config: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return "", fmt.Errorf("config key not found: %s", key)
+	}
+
+	return strings.TrimSpace(result.Stdout), nil
 }
 
 func (e *ExecGit) SetConfig(ctx context.Context, repo *core.Repo, key, value string, global bool) error {
-	return fmt.Errorf("not implemented yet")
+	if key == "" {
+		return fmt.Errorf("config key is required")
+	}
+
+	args := []string{"config"}
+	if global {
+		args = append(args, "--global")
+	}
+	args = append(args, key, value)
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return fmt.Errorf("failed to set config: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to set config %s: %s", key, result.Stderr)
+	}
+
+	e.logger.Info("Config updated", map[string]interface{}{
+		"key":    key,
+		"global": global,
+	})
+
+	return nil
 }
 
 func (e *ExecGit) ListRemotes(ctx context.Context, repo *core.Repo) ([]core.RemoteInfo, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	result, err := e.executor.Run(ctx, repo.Path, []string{"remote", "-v"})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list remotes: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return nil, fmt.Errorf("failed to list remotes: %s", result.Stderr)
+	}
+
+	remotes := make(map[string]*core.RemoteInfo)
+	for _, line := range strings.Split(result.Stdout, "\n") {
+		if line == "" {
+			continue
+		}
+		parts := strings.Fields(line)
+		if len(parts) < 3 {
+			continue
+		}
+
+		name := parts[0]
+		url := parts[1]
+		type_ := strings.Trim(parts[2], "()")
+
+		if remote, exists := remotes[name]; exists {
+			if type_ == "fetch" {
+				remote.FetchURL = url
+			} else if type_ == "push" {
+				remote.PushURL = url
+			}
+		} else {
+			remote := &core.RemoteInfo{
+				Name: name,
+				URL:  url,
+			}
+			if type_ == "fetch" {
+				remote.FetchURL = url
+			} else if type_ == "push" {
+				remote.PushURL = url
+			}
+			remotes[name] = remote
+		}
+	}
+
+	var result_list []core.RemoteInfo
+	for _, remote := range remotes {
+		result_list = append(result_list, *remote)
+	}
+
+	return result_list, nil
 }
 
 func (e *ExecGit) AddRemote(ctx context.Context, repo *core.Repo, name, url string) error {
-	return fmt.Errorf("not implemented yet")
+	if name == "" {
+		return fmt.Errorf("remote name is required")
+	}
+	if url == "" {
+		return fmt.Errorf("remote URL is required")
+	}
+
+	result, err := e.executor.Run(ctx, repo.Path, []string{"remote", "add", name, url})
+	if err != nil {
+		return fmt.Errorf("failed to add remote: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to add remote %s: %s", name, result.Stderr)
+	}
+
+	e.logger.Info("Remote added", map[string]interface{}{
+		"name": name,
+		"url":  sanitizeURL(url),
+	})
+
+	return nil
 }
 
 func (e *ExecGit) RemoveRemote(ctx context.Context, repo *core.Repo, name string) error {
-	return fmt.Errorf("not implemented yet")
+	if name == "" {
+		return fmt.Errorf("remote name is required")
+	}
+
+	result, err := e.executor.Run(ctx, repo.Path, []string{"remote", "remove", name})
+	if err != nil {
+		return fmt.Errorf("failed to remove remote: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to remove remote %s: %s", name, result.Stderr)
+	}
+
+	e.logger.Info("Remote removed", map[string]interface{}{
+		"name": name,
+	})
+
+	return nil
 }
 
 func (e *ExecGit) SetRemoteURL(ctx context.Context, repo *core.Repo, name, url string) error {
-	return fmt.Errorf("not implemented yet")
+	if name == "" {
+		return fmt.Errorf("remote name is required")
+	}
+	if url == "" {
+		return fmt.Errorf("remote URL is required")
+	}
+
+	result, err := e.executor.Run(ctx, repo.Path, []string{"remote", "set-url", name, url})
+	if err != nil {
+		return fmt.Errorf("failed to set remote URL: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to set remote URL for %s: %s", name, result.Stderr)
+	}
+
+	e.logger.Info("Remote URL updated", map[string]interface{}{
+		"name": name,
+		"url":  sanitizeURL(url),
+	})
+
+	return nil
 }
 
 func (e *ExecGit) Fetch(ctx context.Context, repo *core.Repo, remote string, prune, tags bool) error {
-	return fmt.Errorf("not implemented yet")
+	args := []string{"fetch"}
+	
+	if remote != "" {
+		args = append(args, remote)
+	}
+	if prune {
+		args = append(args, "--prune")
+	}
+	if tags {
+		args = append(args, "--tags")
+	}
+
+	e.logger.Info("Fetching from remote", map[string]interface{}{
+		"remote": remote,
+		"prune":  prune,
+		"tags":   tags,
+	})
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return fmt.Errorf("failed to fetch: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return fmt.Errorf("fetch failed: %s", result.Stderr)
+	}
+
+	return nil
 }
 
 func (e *ExecGit) Pull(ctx context.Context, repo *core.Repo, remote, branch string, rebase bool) error {
-	return fmt.Errorf("not implemented yet")
+	args := []string{"pull"}
+	
+	if rebase {
+		args = append(args, "--rebase")
+	}
+	if remote != "" {
+		args = append(args, remote)
+		if branch != "" {
+			args = append(args, branch)
+		}
+	}
+
+	e.logger.Info("Pulling from remote", map[string]interface{}{
+		"remote": remote,
+		"branch": branch,
+		"rebase": rebase,
+	})
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return fmt.Errorf("failed to pull: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		// Check for common error patterns
+		if strings.Contains(result.Stderr, "merge conflict") {
+			return fmt.Errorf("pull failed due to merge conflicts: resolve conflicts and commit")
+		}
+		if strings.Contains(result.Stderr, "non-fast-forward") {
+			return fmt.Errorf("pull failed: non-fast-forward update rejected. Try pull --rebase or merge manually")
+		}
+		return fmt.Errorf("pull failed: %s", result.Stderr)
+	}
+
+	return nil
 }
 
 func (e *ExecGit) Push(ctx context.Context, repo *core.Repo, remote, branch string, force, tags bool) error {
-	return fmt.Errorf("not implemented yet")
+	args := []string{"push"}
+	
+	if force {
+		args = append(args, "--force-with-lease")
+	}
+	if tags {
+		args = append(args, "--tags")
+	}
+	if remote != "" {
+		args = append(args, remote)
+		if branch != "" {
+			args = append(args, branch)
+		}
+	}
+
+	e.logger.Info("Pushing to remote", map[string]interface{}{
+		"remote": remote,
+		"branch": branch,
+		"force":  force,
+		"tags":   tags,
+	})
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return fmt.Errorf("failed to push: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		// Check for common error patterns
+		if strings.Contains(result.Stderr, "non-fast-forward") {
+			return fmt.Errorf("push rejected: non-fast-forward update. Use --force-with-lease if you're sure")
+		}
+		if strings.Contains(result.Stderr, "authentication") || strings.Contains(result.Stderr, "Permission denied") {
+			return fmt.Errorf("push failed: authentication required. Check your credentials")
+		}
+		return fmt.Errorf("push failed: %s", result.Stderr)
+	}
+
+	return nil
 }
 
 func (e *ExecGit) CreateBranch(ctx context.Context, repo *core.Repo, name, startPoint string) error {
-	return fmt.Errorf("not implemented yet")
+	if name == "" {
+		return fmt.Errorf("branch name is required")
+	}
+
+	args := []string{"branch", name}
+	if startPoint != "" {
+		args = append(args, startPoint)
+	}
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return fmt.Errorf("failed to create branch: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		if strings.Contains(result.Stderr, "already exists") {
+			return fmt.Errorf("branch %s already exists", name)
+		}
+		return fmt.Errorf("failed to create branch %s: %s", name, result.Stderr)
+	}
+
+	e.logger.Info("Branch created", map[string]interface{}{
+		"name":       name,
+		"startPoint": startPoint,
+	})
+
+	return nil
 }
 
 func (e *ExecGit) DeleteBranch(ctx context.Context, repo *core.Repo, name string, force bool) error {
-	return fmt.Errorf("not implemented yet")
+	if name == "" {
+		return fmt.Errorf("branch name is required")
+	}
+
+	args := []string{"branch"}
+	if force {
+		args = append(args, "-D")
+	} else {
+		args = append(args, "-d")
+	}
+	args = append(args, name)
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return fmt.Errorf("failed to delete branch: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		if strings.Contains(result.Stderr, "not fully merged") {
+			return fmt.Errorf("branch %s is not fully merged. Use force=true to delete anyway", name)
+		}
+		return fmt.Errorf("failed to delete branch %s: %s", name, result.Stderr)
+	}
+
+	e.logger.Info("Branch deleted", map[string]interface{}{
+		"name":  name,
+		"force": force,
+	})
+
+	return nil
 }
 
 func (e *ExecGit) Checkout(ctx context.Context, repo *core.Repo, ref string, createBranch bool) error {
-	return fmt.Errorf("not implemented yet")
+	if ref == "" {
+		return fmt.Errorf("reference is required")
+	}
+
+	args := []string{"checkout"}
+	if createBranch {
+		args = append(args, "-b")
+	}
+	args = append(args, ref)
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return fmt.Errorf("failed to checkout: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		if strings.Contains(result.Stderr, "already exists") {
+			return fmt.Errorf("branch %s already exists", ref)
+		}
+		if strings.Contains(result.Stderr, "would be overwritten") {
+			return fmt.Errorf("checkout failed: local changes would be overwritten. Commit or stash changes first")
+		}
+		return fmt.Errorf("checkout failed: %s", result.Stderr)
+	}
+
+	e.logger.Info("Checked out", map[string]interface{}{
+		"ref":          ref,
+		"createBranch": createBranch,
+	})
+
+	return nil
 }
 
 func (e *ExecGit) ListBranches(ctx context.Context, repo *core.Repo, all bool) ([]core.BranchInfo, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	args := []string{"branch", "-v"}
+	if all {
+		args = append(args, "-a")
+	}
+
+	result, err := e.executor.Run(ctx, repo.Path, args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list branches: %w", err)
+	}
+
+	if result.ExitCode != 0 {
+		return nil, fmt.Errorf("failed to list branches: %s", result.Stderr)
+	}
+
+	var branches []core.BranchInfo
+	for _, line := range strings.Split(result.Stdout, "\n") {
+		if line == "" {
+			continue
+		}
+
+		line = strings.TrimSpace(line)
+		current := strings.HasPrefix(line, "*")
+		if current {
+			line = strings.TrimSpace(line[1:])
+		}
+
+		parts := strings.Fields(line)
+		if len(parts) < 2 {
+			continue
+		}
+
+		name := parts[0]
+		// Skip remote tracking info in branch name
+		if strings.Contains(name, "->") {
+			continue
+		}
+
+		branch := core.BranchInfo{
+			Name:    name,
+			Current: current,
+		}
+
+		// Extract remote info for remote branches
+		if strings.HasPrefix(name, "remotes/") {
+			remoteParts := strings.SplitN(name[8:], "/", 2)
+			if len(remoteParts) == 2 {
+				branch.Remote = remoteParts[0]
+				branch.Name = remoteParts[1]
+			}
+		}
+
+		branches = append(branches, branch)
+	}
+
+	return branches, nil
 }
 
 func (e *ExecGit) Tag(ctx context.Context, repo *core.Repo, name, ref, message string, sign bool) error {
