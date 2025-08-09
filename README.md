@@ -1,5 +1,10 @@
 # Go Core Git
 
+[![CI](https://github.com/felipemacedo1/go-coregit-pe/actions/workflows/ci.yml/badge.svg)](https://github.com/felipemacedo1/go-coregit-pe/actions/workflows/ci.yml)
+[![Release](https://github.com/felipemacedo1/go-coregit-pe/actions/workflows/release.yml/badge.svg)](https://github.com/felipemacedo1/go-coregit-pe/actions/workflows/release.yml)
+[![CodeQL](https://github.com/felipemacedo1/go-coregit-pe/actions/workflows/codeql.yml/badge.svg)](https://github.com/felipemacedo1/go-coregit-pe/actions/workflows/codeql.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/felipemacedo1/go-coregit-pe)](https://goreportcard.com/report/github.com/felipemacedo1/go-coregit-pe)
+
 A cross-platform Git manager with CLI and local API, built using only Go standard library.
 
 ## Features
@@ -18,6 +23,17 @@ A cross-platform Git manager with CLI and local API, built using only Go standar
 - Git binary installed and available in PATH
 
 ## Installation
+
+### Download Binary
+
+Download the latest release from [GitHub Releases](https://github.com/felipemacedo1/go-coregit-pe/releases):
+
+```bash
+# Linux/macOS
+curl -L https://github.com/felipemacedo1/go-coregit-pe/releases/latest/download/gitmgr-linux-amd64 -o gitmgr
+chmod +x gitmgr
+sudo mv gitmgr /usr/local/bin/
+```
 
 ### From Source
 

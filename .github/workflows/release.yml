@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+    
+    - name: Get version
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Cross compile
+      run: make cross
+    
+    - name: Create checksums
+      run: |
+        cd bin
+        sha256sum * > checksums.txt
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.VERSION }}
+        name: Release ${{ steps.version.outputs.VERSION }}
+        body: |
+          ## Go Core Git ${{ steps.version.outputs.VERSION }}
+          
+          Cross-platform Git manager with CLI and HTTP API.
+          
+          ### Downloads
+          - **Linux (x64)**: gitmgr-linux-amd64, gitmgr-server-linux-amd64
+          - **macOS (x64)**: gitmgr-darwin-amd64, gitmgr-server-darwin-amd64
+          - **macOS (ARM64)**: gitmgr-darwin-arm64, gitmgr-server-darwin-arm64
+          - **Windows (x64)**: gitmgr-windows-amd64.exe, gitmgr-server-windows-amd64.exe
+          
+          ### Installation
+          ```bash
+          curl -L https://github.com/felipemacedo1/go-coregit-pe/releases/download/${{ steps.version.outputs.VERSION }}/gitmgr-linux-amd64 -o gitmgr
+          chmod +x gitmgr
+          sudo mv gitmgr /usr/local/bin/
+          ```
+          
+          Verify downloads with checksums.txt
+        files: |
+          bin/*
+        draft: false
+        prerelease: false
